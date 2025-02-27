@@ -1,6 +1,6 @@
 // categoryRoutes.js
 import express from 'express';
-import * as categoryController from '../controllers/categoryController.js';
+import { getCategories, getCategory, createCategory, updateCategory, deleteCategory } from '../controllers/CategoryController.js';
 
 const router = express.Router();
 
