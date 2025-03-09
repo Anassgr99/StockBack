@@ -1,6 +1,6 @@
 // controllers/uploadExcelController.js
 import ExcelJS from "exceljs";
-import { insertProduct } from "../models/uploadExcelModel.js";
+import { createProductWithStores } from "../models/uploadExcelModel.js";
 
 /**
  * Controller to handle Excel file upload.
@@ -46,7 +46,7 @@ export const uploadExcel = async (req, res) => {
     }
 
     // Insert data into the database
-    await Promise.all(jsonData.map((row) => insertProduct(row)));
+    await Promise.all(jsonData.map((row) => createProductWithStores(row)));
 
     res.json({ message: "Excel file processed and data inserted successfully." });
   } catch (error) {

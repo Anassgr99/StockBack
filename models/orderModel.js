@@ -10,7 +10,6 @@ export const getAllOrders = () => {
     o.id AS order_id,
     o.order_date,
     o.total,
-    o.order_status,
     c.name AS customer_name,
     s.store_name,
     JSON_UNQUOTE(JSON_EXTRACT(p.json_value, '$.order_store')) AS order_store,
@@ -62,7 +61,6 @@ export const getOrderById = (id) => {
        o.id AS order_id,
        o.order_date,
        o.total,
-       o.order_status,
        c.name AS customer_name,
        s.store_name,
        JSON_UNQUOTE(JSON_EXTRACT(p.json_value, '$.order_store')) AS order_store,
@@ -106,7 +104,6 @@ export const createOrder = (orderData) => {
       INSERT INTO orders (
           customer_id, 
           order_date, 
-          order_status, 
           total_products, 
           sub_total, 
           vat, 
@@ -118,13 +115,13 @@ export const createOrder = (orderData) => {
           created_at, 
           updated_at, 
           products
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const orderValues = [
       orderData.customer_id,
       orderData.order_date,
-      orderData.order_status,
+      // orderData.order_status,
       orderData.total_products,
       orderData.sub_total,
       orderData.vat,
@@ -137,7 +134,6 @@ export const createOrder = (orderData) => {
       orderData.updated_at || new Date(),
       JSON.stringify(orderData.products), // Save products as JSON
     ];
-    console.log("orderValues", orderValues);
 
     // Insert the order first
     db.query(insertOrderQuery, orderValues, (err, result) => {
@@ -147,7 +143,6 @@ export const createOrder = (orderData) => {
       }
 
       const orderId = result.insertId;
-      console.log("Inserted Order ID:", orderId);
 
       // Update product quantities ONLY in store_product table
       const updateStoreProductQuery = `
@@ -155,7 +150,6 @@ export const createOrder = (orderData) => {
         SET quantity = quantity - ?
         WHERE product_id = ? AND store_id = ?
       `;
-      console.log("Order Data Products:", orderData.products);
 
       const updatePromises = orderData.products.map((product) => {
         const updateStoreValues = [
@@ -163,7 +157,6 @@ export const createOrder = (orderData) => {
           product.product_id,     // The product ID
           product.order_store,    // The store ID (assuming order_store holds the store_id)
         ];
-        console.log("Updating store_product for:", updateStoreValues);
         return new Promise((resolve, reject) => {
           db.query(updateStoreProductQuery, updateStoreValues, (err) => {
             if (err) {
@@ -173,7 +166,6 @@ export const createOrder = (orderData) => {
               );
               return reject(err);
             }
-            console.log("Updated store_product:", updateStoreValues);
             resolve();
           });
         });

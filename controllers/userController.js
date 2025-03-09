@@ -1,4 +1,6 @@
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser,getUserByEmail } from '../models/userModel.js';
+import { generateToken } from '../config/jwtUtils.js'; // Import generateToken function
+import bcrypt from 'bcrypt';
 
 // Get all users
 export const fetchAllUsers = async (req, res) => {
@@ -60,41 +62,42 @@ export const deleteExistingUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
-  
+
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+        return res.status(400).json({ error: 'Email and password are required' });
     }
-  
+
     try {
-      // Get user from the database by email
-      const user = await getUserByEmail(email);
-  
-      // Check if user exists
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-  
-      // Check if password matches (direct comparison, no hashing)
-      if (password !== user.password) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-  
-      // If login is successful, send the user info including isAdmin
-      res.status(200).json({
-        message: 'Login successful',
-        user: {
-          email: user.email,
-          isAdmin: user.isAdmin, // Include isAdmin field from the database
-          store: user.store, // Include isAdmin field from the database
-          name: user.name,
-        },
-      });
-  
+        // Get user from the database by email
+        const user = await getUserByEmail(email);
+
+        // Check if user exists
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Check if password matches using bcrypt
+    
+
+        // Generate JWT token
+        const token = generateToken(user.id, user.isAdmin, user.store); // Generate the token
+
+        // Send response with the token
+        res.status(200).json({
+            message: 'Login successful',
+            token: token, // Include the token in the response
+            user: {
+                email: user.email,
+                isAdmin: user.isAdmin,
+                store: user.store,
+                name: user.name,
+            },
+        });
+
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Server error' });
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
     }
-  };
-  
+};
   

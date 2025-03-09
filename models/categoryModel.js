@@ -19,6 +19,8 @@ export const getAllCategories = () => {
   });
 };
 
+
+
 // Get category by ID
 export const getCategoryById = async (id) => {
   return new Promise((resolve, reject) => {
@@ -29,14 +31,30 @@ export const getCategoryById = async (id) => {
     });
   });
 };
+
+// Create category 
 export const createCategory = async (categoryData) => {
-  const [result] = await db
-    .promise()
-    .query(
-      "INSERT INTO categories (name, slug, created_at, updated_at, icon) VALUES (?, ?, ?, ?, ?)",
-      [categoryData.name, categoryData.slug, new Date(), new Date(), categoryData.icon]
-    );
-  return result;
+  const bgColor = categoryData.bg || "#ffffff"; // Default color if not provided
+
+  try {
+    const [result] = await db
+      .promise()
+      .query(
+        "INSERT INTO categories (name, slug, created_at, updated_at, bg, icon) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          categoryData.name,
+          categoryData.slug,
+          new Date(),
+          new Date(),
+          bgColor,
+          categoryData.icon,
+        ]
+      );
+    return result;
+  } catch (error) {
+    console.error("Database error:", error);
+    throw error;
+  }
 };
 
 // Update a category

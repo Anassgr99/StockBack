@@ -5,26 +5,20 @@ import db from "../config/db.js";
 export const getAllProducts = () => {
   return new Promise((resolve, reject) => {
     const query = `
-            SELECT 
-                p.*,
-                c.id AS category_id,
-                c.name AS category_name,
-                u.id AS unit_id,
-                u.name AS unit_name,
-                s.id AS store_id,
-                s.store_name AS store_name
-            FROM 
-                products p
-            LEFT JOIN 
-                categories c ON p.category_id = c.id
-            LEFT JOIN 
-                units u ON p.unit_id = u.id
-            LEFT JOIN 
-                store_product sp ON sp.product_id = p.id
-            LEFT JOIN 
-                stores s ON sp.store_id = s.id
+    SELECT 
+        p.*,
+        c.id AS category_id,
+        c.name AS category_name,
+        u.id AS unit_id,
+        u.name AS unit_name
+    FROM 
+        products p
+    LEFT JOIN 
+        categories c ON p.category_id = c.id
+    LEFT JOIN 
+        units u ON p.unit_id = u.id
+`;
 
-        `;
 
     db.query(query, (err, results) => {
       if (err) return reject(err);
@@ -76,15 +70,52 @@ export const getProductById = (id) => {
   });
 };
 
-// Create a new product
+// Create a new product and create store_product records for all stores
 export const createProduct = (productData) => {
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO products (name, slug, code, quantity, buying_price, selling_price, 
-                        quantity_alert, tax, tax_type, notes, product_image, category_id, unit_id)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    // Insert product into products table
+    const query = `
+      INSERT INTO products (
+        name, slug, code, quantity, buying_price, selling_price, 
+        quantity_alert, tax, tax_type, notes, product_image, category_id, unit_id
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
     db.query(query, Object.values(productData), (err, result) => {
       if (err) return reject(err);
-      resolve(result);
+      
+      const productId = result.insertId;
+
+      // After inserting the product, get all stores from the stores table
+      const getStoresQuery = `SELECT id FROM stores`;
+      db.query(getStoresQuery, (err, stores) => {
+        if (err) return reject(err);
+        
+        // For each store, create an entry in the store_product table.
+        // For store with id=1, use the productData.quantity; for all others, quantity will be 0.
+        const insertPromises = stores.map((store) => {
+          const quantity = (store.id === 1) ? productData.quantity : 0;
+          const insertStoreProductQuery = `
+            INSERT INTO store_product (store_id, product_id, quantity)
+            VALUES (?, ?, ?)
+          `;
+          console.log(quantity);
+          return new Promise((resolve, reject) => {
+            db.query(insertStoreProductQuery, [store.id, productId, quantity], (err, result) => {              
+              if (err) {
+                console.error(`Error inserting into store_product for store ${store.id}:`, err);
+                return reject(err);
+              }
+              resolve(result);
+            });
+          });
+        });
+
+        // Wait for all inserts into store_product to complete
+        Promise.all(insertPromises)
+          .then(() => resolve(result))
+          .catch((err) => reject(err));
+      });
     });
   });
 };
@@ -231,7 +262,6 @@ WHERE sp.store_id = ?;
       }
 
       // Map the results into a more structured format
-      //   console.log(results);
 
       const stockQuantities = results.map((row) => ({
         product_id: row.product_id,

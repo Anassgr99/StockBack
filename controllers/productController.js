@@ -123,7 +123,6 @@ export const fetchStockQuantitiesByid = async (req, res) => {
     try {
         // Extract store ID from route parameters
         const storeId = req.params.id;
-        console.log(storeId);
         
 
         // Call the database function with the storeId

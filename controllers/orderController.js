@@ -37,18 +37,10 @@ export const createNewOrder = async (req, res) => {
 export const updateExistingOrder = async (req, res) => {
     const { id } = req.params;
     const orderData = req.body;
-
-    // Log the incoming data for debugging
-    console.log('Updating order with ID:', id);
-    console.log('Order data:', orderData);
-
     try {
-        // Call the updateOrder function and log the result
         const affectedRows = await updateOrder(id, orderData);
-        console.log('Affected rows:', affectedRows);
 
         if (affectedRows === 0) {
-            console.log('No rows affected, order not found.');
             return res.status(404).json({ error: 'Order not found' });
         }
 
