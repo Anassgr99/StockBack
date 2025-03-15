@@ -1,5 +1,6 @@
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser,getUserByEmail } from '../models/userModel.js';
 import { generateToken } from '../config/jwtUtils.js'; // Import generateToken function
+import bcrypt from "bcrypt";
 
 // Get all users
 export const fetchAllUsers = async (req, res) => {
@@ -104,39 +105,28 @@ export const deleteExistingUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
-    console.log('Login attempt for email:', email);
 
-    // Validate input
     if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
+        return res.status(400).json({ error: "Email and password are required" });
     }
 
     try {
-        // Get user from the database by email
         const user = await getUserByEmail(email);
 
-        // Check if user exists
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({ error: "User not found" });
         }
 
-        // Direct string comparison for plain text passwords
-        const passwordMatch = String(password) === String(user.password);
-        console.log('Input password:', password);
-        console.log('Stored password:', user.password);
-        console.log('Password match:', passwordMatch);
-        
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
         if (!passwordMatch) {
-            return res.status(401).json({ error: 'Invalid password' });
+            return res.status(401).json({ error: "Invalid password" });
         }
 
-        // Important: Notice we're using userId instead of id to match your JWT function
-        // Make sure your getUserByEmail function returns the ID field
         const token = generateToken(user.id, user.isAdmin, user.store);
-        
-        // Send response with the token
+
         res.status(200).json({
-            message: 'Login successful',
+            message: "Login successful",
             token: token,
             user: {
                 email: user.email,
@@ -147,7 +137,7 @@ export const loginUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error("Login error:", error);
+        res.status(500).json({ error: "Server error" });
     }
 };

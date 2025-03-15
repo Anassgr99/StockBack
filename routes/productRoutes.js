@@ -1,17 +1,18 @@
 import express from 'express';
 import { fetchAllProducts, fetchProductById, createNewProduct,fetchStockQuantitiesByid, updateExistingProduct, deleteExistingProduct, getUnitController, getProductsByCategory, fetchStockQuantities } from '../controllers/productController.js';
+import { verifyToken } from '../config/jwtUtils.js';
 
 
 const router = express.Router();
 
 // Define product routes
-router.get('/products', fetchAllProducts);
-router.get('/products/:id', fetchProductById);
-router.post('/products', createNewProduct);
-router.put('/products/:id', updateExistingProduct);
-router.delete('/products/:id', deleteExistingProduct);
-router.get('/units/:id', getUnitController);
-router.get('/productsC/:categoryId', getProductsByCategory);
-router.get('/getStockQuantities', fetchStockQuantities);
-router.get('/getStockQuantitiesByid/:id', fetchStockQuantitiesByid);
+router.get('/products', verifyToken, fetchAllProducts);
+router.get('/products/:id', verifyToken, fetchProductById);
+router.post('/products', verifyToken, createNewProduct);
+router.put('/products/:id', verifyToken, updateExistingProduct);
+router.delete('/products/:id', verifyToken, deleteExistingProduct);
+router.get('/units/:id', verifyToken, getUnitController);
+router.get('/productsC/:categoryId', verifyToken, getProductsByCategory);
+router.get('/getStockQuantities', verifyToken, fetchStockQuantities);
+router.get('/getStockQuantitiesByid/:id', verifyToken, fetchStockQuantitiesByid);
 export default router;

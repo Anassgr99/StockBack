@@ -1,21 +1,22 @@
 import express from 'express';
 import { createNewStore, fetchAllStores, fetchStoreById, updateExistingStore, deleteExistingStore } from '../controllers/storeController.js';
+import { verifyToken } from '../config/jwtUtils.js';
 
 const router = express.Router();
 
 // Add a new store
-router.post('/', createNewStore);
+router.post('/', verifyToken, createNewStore);
 
 // Get all stores
-router.get('/', fetchAllStores);
+router.get('/', verifyToken, fetchAllStores);
 
 // Get a store by ID
-router.get('/:id', fetchStoreById);
+router.get('/:id', verifyToken, fetchStoreById);
 
 // Update a store by ID
-router.put('/:id', updateExistingStore);
+router.put('/:id', verifyToken, updateExistingStore);
 
 // Delete a store by ID
-router.delete('/:id', deleteExistingStore);
+router.delete('/:id', verifyToken, deleteExistingStore);
 
 export default router;

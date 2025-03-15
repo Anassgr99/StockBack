@@ -99,7 +99,7 @@ export const createProduct = (productData) => {
             INSERT INTO store_product (store_id, product_id, quantity)
             VALUES (?, ?, ?)
           `;
-          console.log(quantity);
+          //console.log(quantity);
           return new Promise((resolve, reject) => {
             db.query(insertStoreProductQuery, [store.id, productId, quantity], (err, result) => {              
               if (err) {

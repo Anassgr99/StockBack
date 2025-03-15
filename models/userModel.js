@@ -50,8 +50,8 @@ export const createUser = async (userData) => {
       const hashedPassword = await bcrypt.hash(userData.password, 10);
       
       const query = `
-        INSERT INTO users (name, username, email, password, email_verified_at, remember_token, photo)
-        VALUES (?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO users (name, username, email, password, remember_token, photo, isAdmin, store)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
       `;
 
       // Replace plain password with hashed password
@@ -60,17 +60,21 @@ export const createUser = async (userData) => {
         userData.username,
         userData.email,
         hashedPassword, // Hashed password
-        userData.email_verified_at,
         userData.remember_token,
         userData.photo,
+        userData.isAdmin, // Assuming isAdmin is passed as part of userData
+        userData.store,   // Assuming store is passed as part of userData
       ];
 
       db.query(query, values, (err, result) => {
-        if (err) return reject(err);
+        if (err) {
+          // Custom error message
+          return reject({ message: 'Error inserting user into database', error: err });
+        }
         resolve(result.insertId);
       });
     } catch (error) {
-      reject(error);
+      reject({ message: 'An error occurred while processing the request', error });
     }
   });
 };
@@ -100,24 +104,7 @@ export const deleteUser = (id) => {
     });
   });
 };
-// Get user by email (only email and password)
-// export const getUserByEmail = (email) => {
-//   return new Promise((resolve, reject) => {
-//     const query = `
-//         SELECT email, password, isAdmin, store,name
-//         FROM users
-//         WHERE email = ?;
-//       `;
-//     db.query(query, [email], (err, results) => {
-//       if (err) return reject(err);
-//       if (results.length > 0) {
-//         resolve(results[0]); // Resolve with the user (email, password, isAdmin)
-//       } else {
-//         resolve(null); // Return null if no user is found
-//       }
-//     });
-//   });
-// };
+
 
 export const getUserByEmail = (email) => {
   return new Promise((resolve, reject) => {
@@ -129,7 +116,7 @@ export const getUserByEmail = (email) => {
     db.query(query, [email], (err, results) => {
       if (err) return reject(err);
       if (results.length > 0) {
-        console.log('User found in DB:', results[0]);
+        //console.log('User found in DB:', results[0]);
         resolve(results[0]); // Resolve with the user (id, email, password, isAdmin)
       } else {
         resolve(null); // Return null if no user is found

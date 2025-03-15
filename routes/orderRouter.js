@@ -7,23 +7,24 @@ import {
     deleteExistingOrder,
     
 } from '../controllers/orderController.js';
+import { verifyToken } from '../config/jwtUtils.js';
 
 const router = express.Router();
 
 // Get all orders
-router.get('/', fetchAllOrders);
+router.get('/', verifyToken, fetchAllOrders);
 
 // Get order by ID
-router.get('/:id', fetchOrderById);
+router.get('/:id', verifyToken, fetchOrderById);
 
 // Create a new order
-router.post('/', createNewOrder);
+router.post('/', verifyToken, createNewOrder);
 
 // Update an order
-router.put('/:id', updateExistingOrder);
+router.put('/:id', verifyToken, updateExistingOrder);
 
 // Delete an order
-router.delete('/:id', deleteExistingOrder)
+router.delete('/:id', verifyToken, deleteExistingOrder)
 
 
 

@@ -2,13 +2,20 @@ import { getAllProducts, getProductById, createProduct, updateProduct,getStockQu
 
 // Get all products
 export const fetchAllProducts = async (req, res) => {
+    console.log("User Info:", req.user); 
+
+    if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
+
     try {
         const products = await getAllProducts();
         res.status(200).json(products);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to retrieve products' });
+        res.status(500).json({ error: "Failed to retrieve products" });
     }
 };
+
 
 // Get product by ID
 export const fetchProductById = async (req, res) => {
